@@ -1,1 +1,93 @@
-<p>new-exhibit works!</p>
+<div class="min-h-screen bg-white w-full flex flex-col">
+    <nav class="bg-white border-b px-4 py-2">
+      <div class="flex items-center space-x-2 text-sm text-gray-600">
+        <a href="#" class="hover:text-gray-900">Exhibition</a>
+        <span>/</span>
+        <span class="text-gray-900">New Exhibit</span>
+      </div>
+    </nav>
+  
+    <div class="container w-full mx-auto p-6 flex-grow">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">New Exhibit</h1>
+        <button 
+          type="button"
+          (click)="saveExhibit()"
+          class="text-orange-500 hover:text-orange-600 flex items-center gap-2"
+        >
+          Add Exhibit
+          <mat-icon class="text-orange-500">add_circle_outline</mat-icon>
+        </button>
+      </div>
+  
+      <form [formGroup]="exhibitForm">
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b bg-gray-100 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-1 py-3 ">Language</th>
+                <th class="px-6 py-3 ">Exhibit Name</th>
+                <th class="px-6 py-3 ">Audio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let lang of languages" class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <img [src]="lang.imagePath" [alt]="lang.name + ' Flag'" class="w-7 h-6">
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="space-y-1">
+                    <div class="text-xs text-gray-400">Exhibit name</div>
+                    <input 
+                      [formControlName]="'name_' + lang.code"
+                      class="block w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      [placeholder]="'Exhibit Name'"
+                    >
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="space-y-2">
+                    <button type="button"
+                            (click)="fileInput.click()"
+                            class="text-orange-500 hover:text-orange-600 flex items-center gap-2">
+                      Load Audio
+                      <mat-icon class="text-orange-500">file_download</mat-icon>
+                    </button>
+                    <input #fileInput
+                           type="file" 
+                           accept="audio/*"
+                           class="hidden"
+                           (change)="onAudioUpload($event, lang.code)">
+                    <div *ngIf="hasAudioFile(lang.code)" class="text-xs text-gray-400">
+                      {{ getAudioFileName(lang.code) }}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <div class="mt-6 flex items-center gap-4">
+          <button type="button"
+                  class="text-orange-500 hover:text-orange-600 flex items-center gap-2 px-4 py-2">
+            Generate QR Code
+            <mat-icon class="text-orange-500">qr_code</mat-icon>
+          </button>
+        </div>
+      </form>
+    </div>
+  
+    <div class="mt-6">
+      <button 
+        type="button"
+        (click)="saveExhibit()"
+        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2 mt-auto"
+      >
+        Save Exhibit
+        <mat-icon class="text-white">done</mat-icon>
+      </button>
+    </div>
+  </div>

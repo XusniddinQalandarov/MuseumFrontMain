@@ -116,7 +116,16 @@ export const appRoutes: Route[] = [
             {
                 path: 'example',
                 loadChildren: () =>
-                    import('app/modules/admin/exhibit/exhibit.routes'),
+                    import('app/modules/admin/exhibit/exhibit.routes').then(
+                        (m) => m.default
+                    ),
+            },
+            {
+                path: 'new',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/new-exhibit/new-exhibit.routes'
+                    ).then((m) => m.default),
             },
         ],
     },

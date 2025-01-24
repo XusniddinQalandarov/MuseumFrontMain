@@ -1,11 +1,12 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
+
 @Component({
     selector: 'exhibit',
     standalone: true,
-    imports: [MatIconModule],
+    imports: [MatIconModule, RouterModule],
     templateUrl: './exhibit.component.html',
-    styleUrls: ['./exhibit.component.scss'],
     encapsulation: ViewEncapsulation.None,
 })
 export class ExhibitComponent {

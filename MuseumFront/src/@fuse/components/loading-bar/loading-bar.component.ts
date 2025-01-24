@@ -1,86 +1,61 @@
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-
+import { AsyncPipe, CommonModule } from '@angular/common';
 import {
+    ChangeDetectionStrategy,
     Component,
-    inject,
     Input,
+    NgZone,
     OnChanges,
-    OnDestroy,
     OnInit,
     SimpleChanges,
     ViewEncapsulation,
+    inject,
 } from '@angular/core';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FuseLoadingService } from '@fuse/services/loading';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'fuse-loading-bar',
-    templateUrl: './loading-bar.component.html',
+    template: `
+        <mat-progress-bar
+            [mode]="mode$ | async"
+            [value]="progress$ | async"
+            *ngIf="show$ | async"
+        >
+        </mat-progress-bar>
+    `,
     styleUrls: ['./loading-bar.component.scss'],
     encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'fuseLoadingBar',
     standalone: true,
-    imports: [MatProgressBarModule],
+    imports: [MatProgressBarModule, AsyncPipe, CommonModule],
 })
-export class FuseLoadingBarComponent implements OnChanges, OnInit, OnDestroy {
+export class FuseLoadingBarComponent implements OnChanges, OnInit {
     private _fuseLoadingService = inject(FuseLoadingService);
+    private _ngZone = inject(NgZone);
 
-    @Input() autoMode: boolean = true;
-    mode: 'determinate' | 'indeterminate';
-    progress: number = 0;
-    show: boolean = false;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
+    @Input() set autoMode(value: boolean) {
+        this._ngZone.run(() => {
+            this._fuseLoadingService.setAutoMode(coerceBooleanProperty(value));
+        });
+    }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
+    mode$: Observable<'determinate' | 'indeterminate'>;
+    progress$: Observable<number>;
+    show$: Observable<boolean>;
 
-    /**
-     * On changes
-     *
-     * @param changes
-     */
+    ngOnInit(): void {
+        this.mode$ = this._fuseLoadingService.mode$;
+        this.progress$ = this._fuseLoadingService.progress$;
+        this.show$ = this._fuseLoadingService.show$;
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
         // Auto mode
         if ('autoMode' in changes) {
-            // Set the auto mode in the service
-            this._fuseLoadingService.setAutoMode(
-                coerceBooleanProperty(changes.autoMode.currentValue)
-            );
+            this.autoMode = changes.autoMode.currentValue;
         }
-    }
-
-    /**
-     * On init
-     */
-    ngOnInit(): void {
-        // Subscribe to the service
-        this._fuseLoadingService.mode$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) => {
-                this.mode = value;
-            });
-
-        this._fuseLoadingService.progress$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) => {
-                this.progress = value;
-            });
-
-        this._fuseLoadingService.show$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((value) => {
-                this.show = value;
-            });
-    }
-
-    /**
-     * On destroy
-     */
-    ngOnDestroy(): void {
-        // Unsubscribe from all subscriptions
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
     }
 }

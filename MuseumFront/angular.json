@@ -31,6 +31,13 @@
                             "quill-delta"
                         ],
                         "assets": [
+                            "src/favicon.ico",
+                            "src/assets",
+                            {
+                                "glob": "**/*",
+                                "input": "public",
+                                "output": "/"
+                            },
                             {
                                 "glob": "**/*",
                                 "input": "public"

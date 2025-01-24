@@ -3,7 +3,7 @@ import { NewExhibitComponent } from 'app/modules/admin/new-exhibit/new-exhibit.c
 
 export default [
     {
-        path: '',
+        path: 'new-exhibit',
         component: NewExhibitComponent,
     },
 ] as Routes;
