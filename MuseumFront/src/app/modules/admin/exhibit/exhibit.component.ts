@@ -10,8 +10,5 @@ import { RouterModule } from '@angular/router';
     encapsulation: ViewEncapsulation.None,
 })
 export class ExhibitComponent {
-    /**
-     * Constructor
-     */
     constructor() {}
 }

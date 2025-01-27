@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
     FormsModule,
@@ -17,6 +18,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
+import { of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'auth-sign-in',
@@ -26,6 +29,7 @@ import { AuthService } from 'app/core/auth/auth.service';
     standalone: true,
     imports: [
         RouterLink,
+        CommonModule,
         FuseAlertComponent,
         FormsModule,
         ReactiveFormsModule,
@@ -46,6 +50,7 @@ export class AuthSignInComponent implements OnInit {
     };
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
+    isLoading: boolean = false; // To control spinner visibility
 
     /**
      * Constructor
@@ -67,12 +72,9 @@ export class AuthSignInComponent implements OnInit {
     ngOnInit(): void {
         // Create the form
         this.signInForm = this._formBuilder.group({
-            email: [
-                'hughes.brian@company.com',
-                [Validators.required, Validators.email],
-            ],
-            password: ['admin', Validators.required],
-            rememberMe: [''],
+            email: ['test@mail.ru', [Validators.required, Validators.email]],
+            password: ['123', Validators.required],
+            rememberMe: [false],
         });
     }
 
@@ -86,46 +88,99 @@ export class AuthSignInComponent implements OnInit {
     signIn(): void {
         // Return if the form is invalid
         if (this.signInForm.invalid) {
+            this.handleFormValidationErrors();
             return;
         }
 
-        // Disable the form
+        // Disable the form and show loading spinner
         this.signInForm.disable();
-
-        // Hide the alert
+        this.isLoading = true;
         this.showAlert = false;
 
         // Sign in
-        this._authService.signIn(this.signInForm.value).subscribe(
-            () => {
-                // Set the redirect url.
-                // The '/signed-in-redirect' is a dummy url to catch the request and redirect the user
-                // to the correct page after a successful sign in. This way, that url can be set via
-                // routing file and we don't have to touch here.
-                const redirectURL =
-                    this._activatedRoute.snapshot.queryParamMap.get(
-                        'redirectURL'
-                    ) || '/signed-in-redirect';
+        this._authService
+            .signIn(this.signInForm.value)
+            .pipe(
+                catchError((error) => {
+                    this.handleSignInError(error);
+                    return of(null); // Return observable with null to keep the stream alive
+                }),
+                finalize(() => {
+                    // Re-enable the form and hide loading spinner
+                    this.signInForm.enable();
+                    this.isLoading = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response) {
+                    // Set the redirect url.
+                    const redirectURL =
+                        this._activatedRoute.snapshot.queryParamMap.get(
+                            'redirectURL'
+                        ) || '/signed-in-redirect';
 
-                // Navigate to the redirect url
-                this._router.navigateByUrl(redirectURL);
-            },
-            (response) => {
-                // Re-enable the form
-                this.signInForm.enable();
+                    // Navigate to the redirect url
+                    this._router
+                        .navigateByUrl(redirectURL)
+                        .catch((navError) => {
+                            console.error('Navigation error:', navError);
+                            this.handleNavigationError(navError);
+                        });
+                }
+            });
+    }
 
-                // Reset the form
-                this.signInNgForm.resetForm();
+    /**
+     * Handle form validation errors
+     */
+    private handleFormValidationErrors(): void {
+        this.showAlert = true;
+        this.alert = {
+            type: 'error',
+            message: 'Please fill in all required fields correctly.',
+        };
+        // Mark all fields as touched to display validation errors
+        this.signInForm.markAllAsTouched();
+    }
 
-                // Set the alert
-                this.alert = {
-                    type: 'error',
-                    message: 'Wrong email or password',
-                };
+    /**
+     * Handle sign in errors
+     * @param error The error response
+     */
+    private handleSignInError(error: any): void {
+        console.error('Sign in error:', error);
 
-                // Show the alert
-                this.showAlert = true;
-            }
-        );
+        // Determine the type of error and set appropriate message
+        if (error.name === 'AbortError') {
+            this.alert = {
+                type: 'error',
+                message: 'The sign-in request was aborted. Please try again.',
+            };
+        } else if (error.status === 401) {
+            this.alert = {
+                type: 'error',
+                message: 'Incorrect email or password.',
+            };
+        } else {
+            this.alert = {
+                type: 'error',
+                message:
+                    'An unexpected error occurred. Please try again later.',
+            };
+        }
+
+        this.showAlert = true;
+    }
+
+    /**
+     * Handle navigation errors
+     * @param error The navigation error
+     */
+    private handleNavigationError(error: any): void {
+        this.alert = {
+            type: 'error',
+            message: 'Navigation failed. Please try again.',
+        };
+        this.showAlert = true;
     }
 }

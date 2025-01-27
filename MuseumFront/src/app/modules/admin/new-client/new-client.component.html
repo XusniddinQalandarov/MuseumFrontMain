@@ -1,87 +1,131 @@
 <div class="min-h-screen bg-white w-full flex flex-col">
-    <nav class="bg-white border-b px-4 py-2">
-      <div class="flex items-center space-x-2 text-sm text-gray-600">
-        <a href="#" class="hover:text-gray-900">Exhibition</a>
-        <span>/</span>
-        <span class="text-gray-900">New Client</span>
-      </div>
-    </nav>
-  
-    <div class="container w-full mx-auto p-6 flex-grow">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Clients</h1>
-        <button 
-          type="button"
-          (click)="addUser()"
-          class="text-orange-500 hover:text-orange-600 flex items-center gap-2"
-        >
-          Add Client
-          <mat-icon class="text-orange-500">add_circle_outline</mat-icon>
-        </button>
-      </div>
-  
-      <form [formGroup]="form">
-        <div formArrayName="users" class="bg-white rounded-lg shadow overflow-hidden">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b bg-gray-100 font-medium text-gray-500 uppercase tracking-wider w-16">
-                <th class="px-6 py-3 text-left text-xs">№</th>
-                <th class="px-6 py-3 text-left text-xs">Login</th>
-                <th class="px-6 py-3 text-left text-xs">Password</th>
-                <th class="px-6 py-3 text-left text-xs w-24">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let user of users.controls; let i = index" [formGroupName]="i" 
-                  class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ i + 1 }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-xs text-gray-400">Title</div>
+  <nav class="bg-white border-b px-4 py-2">
+    <div class="flex items-center space-x-2 text-sm text-gray-600">
+      <a href="#" class="hover:text-gray-900">Exhibition</a>
+      <span>/</span>
+      <span class="text-gray-900">New Client</span>
+    </div>
+  </nav>
+
+  <div class="container mx-auto w-full p-6 flex-grow">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Clients</h1>
+      <button 
+        type="button"
+        (click)="addUserForm()"
+        class="text-orange-500 hover:text-orange-600 flex items-center gap-2"
+      >
+        Add Client
+        <mat-icon class="text-orange-500">add_circle_outline</mat-icon>
+      </button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden flex-grow">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b bg-gray-100 font-medium text-gray-500 uppercase tracking-wider">
+            <th class="px-6 py-3 text-left text-xs">№</th>
+            <th class="px-6 py-3 text-left text-xs">Login</th>
+            <th class="px-6 py-3 text-left text-xs">Password</th>
+            <th class="px-6 py-3 text-left text-xs w-24">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (userForm of userForms; track trackByIndex($index); let i = $index) {
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ i + 1 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <form [formGroup]="userForm" (ngSubmit)="saveUser(i)" class="space-y-1">
                   <div class="space-y-1">
+                    <label for="login-{{i}}" class="sr-only">Login</label>
                     <input 
+                      id="login-{{i}}"
                       formControlName="login"
                       class="block w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Text"
-                    >
+                      placeholder="Enter login"
+                      [class.border-red-500]="userForm.get('login')?.invalid && (userForm.get('login')?.touched || userForm.submitted)"
+                      autocomplete="username"
+                    />
+                    <input
+                      type="hidden"
+                      formControlName="username"
+                      [id]="'username-' + i"
+                      autocomplete="username"
+                    />
+                    @if (userForm.get('login')?.invalid && (userForm.get('login')?.touched || userForm.submitted)) {
+                      <div class="text-xs text-red-500">
+                        @if (userForm.get('login')?.errors?.['required']) {
+                          <span>Login is required.</span>
+                        }
+                        @if (userForm.get('login')?.errors?.['minlength']) {
+                          <span>Login must be at least 3 characters.</span>
+                        }
+                      </div>
+                    }
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                </form>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <form [formGroup]="userForm" (ngSubmit)="saveUser(i)" class="space-y-1">
                   <div class="space-y-1">
-                    <div class="text-xs text-gray-400">Title</div>
+                    <label for="password-{{i}}" class="sr-only">Password</label>
                     <input 
+                      id="password-{{i}}"
                       formControlName="password"
                       type="password"
                       class="block w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="Text"
-                    >
+                      placeholder="Enter password"
+                      [class.border-red-500]="userForm.get('password')?.invalid && (userForm.get('password')?.touched || userForm.submitted)"
+                      autocomplete="new-password"
+                      aria-label="Password"
+                    />
+                    @if (userForm.get('password')?.invalid && (userForm.get('password')?.touched || userForm.submitted)) {
+                      <div class="text-xs text-red-500">
+                        @if (userForm.get('password')?.errors?.['required']) {
+                          <span>Password is required.</span>
+                        }
+                        @if (userForm.get('password')?.errors?.['minlength']) {
+                          <span>Password must be at least 6 characters.</span>
+                        }
+                      </div>
+                    }
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
-                  <div class="flex justify-end space-x-2">
-                    <button type="button" class="text-orange-500 hover:text-orange-600">
-                      <mat-icon class="text-orange-500">create</mat-icon>
-                    </button>
-                    <button type="button" (click)="deleteUser(i)" class="text-red-500 hover:text-red-600">
-                      <mat-icon class="text-orange-500">delete</mat-icon>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </form>
-    </div>
-  
-    <div class="mt-6">
-      <button 
-        type="button"
-        (click)="saveUsers()"
-        class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors mt-auto"
-      >
-        Save Client
-      </button>
+                </form>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex justify-end space-x-2">
+                  <button type="submit" (click)="saveUser(i)" class="text-orange-500 hover:text-orange-600">
+                    <mat-icon class="text-orange-500">save</mat-icon>
+                  </button>
+                  <button type="button" (click)="deleteUser(i)" class="text-red-500 hover:text-red-600">
+                    <mat-icon class="text-orange-500">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                No clients added yet. Click "Add Client" to get started.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
   </div>
+
+  <div class="mt-6">
+    <button 
+      type="button"
+      (click)="saveAllUsers()"
+      class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors mt-auto"
+    >
+      Save All Clients
+    </button>
+  </div>
+</div>
+
+  

@@ -16,7 +16,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 interface LanguageSection {
     name: string;
     code: string;
-    flag: string;
+
     imagePath: string;
 }
 
@@ -46,19 +46,16 @@ export class NewExhibitComponent implements OnInit, OnDestroy {
         {
             name: "O'zbekcha",
             code: 'uz',
-            flag: '🇺🇿',
             imagePath: 'images/flags/uz.png',
         },
         {
             name: 'Русский',
             code: 'ru',
-            flag: '🇷🇺',
             imagePath: 'images/flags/ru.png',
         },
         {
             name: 'English',
             code: 'en',
-            flag: '🇺🇸',
             imagePath: 'images/flags/en.png',
         },
     ];
