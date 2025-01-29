@@ -3,7 +3,7 @@ import { NewClientComponent } from './new-client.component';
 
 export default [
     {
-        path: 'new-client  ',
+        path: 'new-client',
         component: NewClientComponent,
     },
 ] as Routes;

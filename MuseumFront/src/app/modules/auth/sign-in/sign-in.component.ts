@@ -14,12 +14,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
-import { of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     selector: 'auth-sign-in',
@@ -28,7 +27,6 @@ import { catchError, finalize } from 'rxjs/operators';
     animations: fuseAnimations,
     standalone: true,
     imports: [
-        RouterLink,
         CommonModule,
         FuseAlertComponent,
         FormsModule,
@@ -74,7 +72,6 @@ export class AuthSignInComponent implements OnInit {
         this.signInForm = this._formBuilder.group({
             email: ['test@mail.ru', [Validators.required, Validators.email]],
             password: ['123', Validators.required],
-            rememberMe: [false],
         });
     }
 
@@ -101,10 +98,10 @@ export class AuthSignInComponent implements OnInit {
         this._authService
             .signIn(this.signInForm.value)
             .pipe(
-                catchError((error) => {
-                    this.handleSignInError(error);
-                    return of(null); // Return observable with null to keep the stream alive
-                }),
+                // catchError((error) => {
+                //     this.handleSignInError(error);
+                //     return of(null); // Return observable with null to keep the stream alive
+                // }),
                 finalize(() => {
                     // Re-enable the form and hide loading spinner
                     this.signInForm.enable();
@@ -149,8 +146,6 @@ export class AuthSignInComponent implements OnInit {
      */
     private handleSignInError(error: any): void {
         console.error('Sign in error:', error);
-
-        // Determine the type of error and set appropriate message
         if (error.name === 'AbortError') {
             this.alert = {
                 type: 'error',
